@@ -1,3 +1,7 @@
+## About Project
+The project uses context , as a database I keep it at the top level so I can render all the theads at the side and still keep the messages for each thread individually
+
+
 ## Screenshots
 ![Create View](<screenshots/Create View.png>)
 ![Thread View](<screenshots/Thread View.png>)
