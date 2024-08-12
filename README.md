@@ -1,13 +1,25 @@
+# UNBORED
 ## About Project
-The project uses context , as a database I keep it at the top level so I can render all the theads at the side and still keep the messages for each thread individually
+UNBORED is an interactive messaging application that allows users to create threads or chats and enables any active user to write messages. 
 
 
 ## Screenshots
 ![Create View](<screenshots/Create View.png>)
+*Create View - Easily start new threads or chats.*
+
 ![Thread View](<screenshots/Thread View.png>)
+*Thread View - Overview of existing threads.*
+
 ![Thread with Messages View](<screenshots/Thread with Messages View.png>)
+*Thread with Messages View - Engage in ongoing conversations.*
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+
+## Features
+
+- Create new threads or chats with ease.
+- View all threads on the side panel while keeping messages for each thread individually.
+- Participate in active conversations with other users in real-time.
 
 ## Getting Started
 
