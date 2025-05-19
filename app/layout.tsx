@@ -89,8 +89,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
         return { ...state, threads: { ...state.threads, [action.threadId]: newThread } };
       } else if (action.type === "SET_THREAD_TITLE") {
-        if (state.activeUser == null) return state;
-
         const thread = state.threads[action.threadId];
         if (thread.title === action.title) return state;
 
