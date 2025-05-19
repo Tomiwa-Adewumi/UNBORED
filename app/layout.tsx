@@ -1,6 +1,6 @@
 "use client";
 import "./globals.css";
-
+import Head from "next/head";
 import { faker } from "@faker-js/faker";
 import { getAuth } from "firebase/auth";
 import { Inter } from "next/font/google";
@@ -196,6 +196,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   }, [context.state]);
 
   return (
+    <>
+    <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+    </Head>
     <html lang="en">
       <body className={inter.className}>
         <div className="grid h-full w-full grid-cols-[25%_minmax(0,_1fr)] divide-x">
@@ -209,5 +213,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </div>
       </body>
     </html>
+    </>
   );
 }
