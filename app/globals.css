@@ -9,7 +9,5 @@
     min-height: 100vh;
     overflow-y: auto;
 
-    /* optional: push fixed-bottom elements up on iOS */
-    padding-bottom: env(safe-area-inset-bottom);
   }
 }
