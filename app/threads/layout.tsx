@@ -18,9 +18,8 @@ export default function ThreadsLayout({ children }: Readonly<{ children: React.R
   return (
     <Fragment>
       <aside className="flex min-h-0 flex-col divide-y bg-slate-100">
-        <div className="flex h-12 flex-wrap items-center justify-start gap-2 p-2">
+        <div className="flex h-12 items-center justify-between gap-2 p-2">
           <h1 className="font-medium">Chat</h1>
-          <div className="flex-1"></div>
           <button
             type="button"
             title="Create a New Thread"
