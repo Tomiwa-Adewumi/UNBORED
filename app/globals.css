@@ -5,8 +5,11 @@
 @layer base {
   html,
   body {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    /* allow the page to grow and scroll */
+    min-height: 100vh;
+    overflow-y: auto;
+
+    /* optional: push fixed-bottom elements up on iOS */
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
