@@ -19,6 +19,8 @@ import {
 } from "./app-provider";
 import { app, auth, db } from "./lib/firebase";
 import { sendMessage } from "./lib/messages";
+import Account from "./threads/account";
+import { DialogTrigger } from "@radix-ui/react-dialog";
 
 export function ClientProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppContextType>({
@@ -41,12 +43,13 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
           }));
           signInAnonymously(auth).catch(() => {
             setError(
-              "Could not start a session. Check Firebase configuration and anonymous sign-in.",
+              "Guest sign-in is unavailable. Sign in with an email account to continue.",
             );
             setState((s) => ({ ...s, state: "ERROR" }));
           });
           return;
         }
+        setError("");
         const displayName = user.displayName || "Anonymous";
         setState((s) => ({
           ...s,
@@ -168,6 +171,13 @@ export function ClientProvider({ children }: { children: React.ReactNode }) {
             <div role="alert" className="bg-red-100 p-3 text-red-900">
               {error}
             </div>
+          )}
+          {!state.activeUser && state.state === "ERROR" && (
+            <Account>
+              <DialogTrigger className="m-3 rounded bg-blue-600 p-2 text-white">
+                Sign in / Create account
+              </DialogTrigger>
+            </Account>
           )}
           <div className="grid h-screen grid-cols-[25%_minmax(0,1fr)] divide-x">
             {children}
