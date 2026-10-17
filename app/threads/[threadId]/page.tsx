@@ -6,7 +6,11 @@ import { DialogTrigger } from "@radix-ui/react-dialog";
 import { ExclamationTriangleIcon, PaperPlaneIcon } from "@radix-ui/react-icons";
 
 import Account from "@/app/threads/account";
-import { useAppContext, useAppDispatch, useThreadMessages } from "@/app/app-provider";
+import {
+  useAppContext,
+  useAppDispatch,
+  useThreadMessages,
+} from "@/app/app-provider";
 
 export default function ChatPage({ params }: { params: { threadId: string } }) {
   const context = useAppContext();
@@ -18,7 +22,7 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
   const [messageContent, setMessageContent] = useState("");
 
   useEffect(() => {
-    if (thread?.messages.length == null || virtualListRef.current == null) return;
+    if (!thread?.messages.length || virtualListRef.current == null) return;
 
     virtualListRef.current.scrollToIndex(thread.messages.length - 1, {
       align: "end",
@@ -37,23 +41,30 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
   return (
     <div className="flex h-full w-full  flex-col items-center justify-start divide-y">
       <header className="flex h-12 w-full items-center justify-start bg-slate-100 p-2">
-        {thread.title ?? (
-          <input
-            type="text"
-            placeholder="Thread title... Press Enter to Save"
-            onKeyDown={(e) => {
-              if (e.key !== "Enter") return;
-              dispatch({
-                type: "SET_THREAD_TITLE",
-                title: (e.target as HTMLInputElement).value,
-                threadId: params.threadId,
-              });
-            }}
-            className="h-full flex-1 rounded-lg border border-gray-400 px-2 text-sm outline-none focus:border-blue-400"
-          />
-        )}
+        {thread.title ??
+          (thread.ownerId !== context.activeUser?.userId ? (
+            "Untitled thread"
+          ) : (
+            <input
+              type="text"
+              placeholder="Thread title... Press Enter to Save"
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                void dispatch({
+                  type: "SET_THREAD_TITLE",
+                  title: (e.target as HTMLInputElement).value,
+                  threadId: params.threadId,
+                }).catch(() => {});
+              }}
+              className="h-full flex-1 rounded-lg border border-gray-400 px-2 text-sm outline-none focus:border-blue-400"
+            />
+          ))}
       </header>
-      <VList ref={virtualListRef} className="w-full flex-1 p-2 [&_>_*_>*:first-child]:m-0">
+      {thread.error && <p role="alert">{thread.error}</p>}
+      <VList
+        ref={virtualListRef}
+        className="w-full flex-1 p-2 [&_>_*_>*:first-child]:m-0"
+      >
         {thread.messages.map((msg, idx) => {
           const theme =
             msg.from === context.activeUser?.userId
@@ -64,10 +75,13 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
 
           return (
             <div
-              key={idx}
+              key={msg.id ?? `legacy-${idx}`}
               className={`mt-3 flex w-full max-w-[calc(100%-10rem)] flex-col justify-center gap-0.5 ${theme.side}`}
             >
-              <p title={context.userList[msg.from]?.email} className="text-xs text-gray-400">
+              <p
+                title={context.userList[msg.from]?.email}
+                className="text-xs text-gray-400"
+              >
                 {context.userList[msg.from]?.displayName ?? "Anonymous"}
               </p>
               <p
@@ -89,15 +103,26 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
       </VList>
       <form
         className="grid w-full grid-cols-[minmax(0,1fr)_max-content] items-center gap-2 p-2 [grid-template-areas:'title_title'_'input_button']"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
 
           if (messageContent.trim().length < 1) return;
-          setMessageContent("");
-          dispatch({ type: "ADD_MESSAGE_TO_THREAD", threadId: params.threadId, message: messageContent.trim() });
+          const submitted = messageContent;
+          try {
+            await dispatch({
+              type: "ADD_MESSAGE_TO_THREAD",
+              threadId: params.threadId,
+              message: submitted.trim(),
+            });
+            setMessageContent((current) =>
+              current === submitted ? "" : current,
+            );
+          } catch {
+            /* Provider displays the error; retain the draft. */
+          }
         }}
       >
-        {context.activeUser == null ? (
+        {context.activeUser == null || context.activeUser.isAnonymous ? (
           <Account>
             <div className="[grid-area:title]">
               <DialogTrigger className="cursor-default select-none text-xs font-medium underline decoration-dotted underline-offset-2">
@@ -115,7 +140,7 @@ export default function ChatPage({ params }: { params: { threadId: string } }) {
             </span>
             <button
               type="button"
-              onClick={() => dispatch({ type: "LOG_OUT" })}
+              onClick={() => void dispatch({ type: "LOG_OUT" }).catch(() => {})}
               className="rounded-sm px-1.5 py-0.5 text-xs tracking-wide hover:bg-gray-200/70"
             >
               (Logout)

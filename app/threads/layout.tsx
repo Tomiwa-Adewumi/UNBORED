@@ -24,7 +24,7 @@ export default function ThreadsLayout({ children }: Readonly<{ children: React.R
             type="button"
             title="Create a New Thread"
             className="grid aspect-square place-items-center rounded-md bg-blue-500 p-1.5 text-white"
-            onClick={() => dispatch({ type: "ADD_THREAD", threadId: Math.random().toString(36).slice(2) })}
+            onClick={() => void dispatch({ type: "ADD_THREAD", threadId: crypto.randomUUID() }).catch(() => {})}
           >
             <PlusIcon />
           </button>

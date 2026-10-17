@@ -55,7 +55,7 @@ function Form(props: { action: "LOG_IN" | "SIGN_UP" }) {
   const [state, setState] = useState<"IDLE" | "LOADING" | "DONE" | "ERROR" | "UPDATING">("IDLE");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [userEmail, setUserEmail] = useState(generateEmail());
+  const [userEmail, setUserEmail] = useState("");
 
   function generateEmail() {
     return faker.internet.email({
@@ -92,12 +92,12 @@ function Form(props: { action: "LOG_IN" | "SIGN_UP" }) {
         displayName = others.displayName;
       }
 
-      setState("DONE");
-      dispatch({
+      await dispatch({
         type: "LOG_IN",
         isNew: props.action === "SIGN_UP",
         user: { userId: credentials.user.uid, displayName: displayName ?? "", email },
       });
+      setState("DONE");
     } catch (error) {
       console.error(error);
       setState("ERROR");
@@ -118,7 +118,7 @@ function Form(props: { action: "LOG_IN" | "SIGN_UP" }) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col items-center justify-center gap-y-3.5 p-5">
-      <Input type="email" title="E-mail" id="email" readOnly value={userEmail}>
+      <Input type="email" title="E-mail" id="email" value={userEmail} onChange={e => setUserEmail(e.target.value)}>
         <div className="absolute inset-y-0 right-0 grid place-items-center p-1">
           <button
             type="button"
