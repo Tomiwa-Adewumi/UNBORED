@@ -1,62 +1,53 @@
 # UNBORED
-## About Project
-UNBORED is an interactive messaging application that allows users to create threads or chats and enables any active user to write messages. 
 
+A shared real-time chat application built with Next.js, TypeScript, Firebase Authentication, and Firestore. Users can create conversations and send messages as authenticated guests or email/password users.
 
-## Screenshots
-![Create View](<screenshots/Create View.png>)
-*Create View - Easily start new threads or chats.*
+![Thread view](screenshots/Thread%20View.png)
 
-![Thread View](<screenshots/Thread View.png>)
-*Thread View - Overview of existing threads.*
+*Screenshot from the original interface; the updated data layer preserves the conversation layout.*
 
-![Thread with Messages View](<screenshots/Thread with Messages View.png>)
-*Thread with Messages View - Engage in ongoing conversations.*
+## Engineering design
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Messages are individual immutable documents under `threads/{id}/messages/{id}`. Concurrent senders write different IDs rather than replacing a shared array. Writes run in async command handlers, not React reducers. Failed sends retain the draft and display an error. Firebase Auth supplies identity; local storage is not trusted for authorization.
 
-## Features
+Firestore rules require authenticated identity (including anonymous Firebase sessions), bind message authors to the authenticated UID, restrict title changes to the thread owner, reject message overwrites, and exclude emails from new public profile writes. Threads are shared across all signed-in users; this is not private messaging.
 
-- Create new threads or chats with ease.
-- View all threads on the side panel while keeping messages for each thread individually.
-- Participate in active conversations with other users in real-time.
+## Run locally without a cloud account
 
-## Getting Started
+Requires Node.js 22 and Java 17+ for Firebase emulators.
 
-First, run:
 ```bash
-npm install
+npm ci
+cp .env.example .env.local
+npm run emulators
 ```
 
-Then, run the development server:
+In another terminal:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in two browser sessions. Create a thread and send messages from both sessions. Emulator data is temporary; no cloud credentials or billing account are needed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verify
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```bash
+npm run typecheck
+npm test
+npm run build
+```
 
-## Learn More
+The emulator suite tests concurrent clients, impersonation, unauthenticated writes, message replacement, owner-only title changes, and public profile fields. It uses the same `sendMessage` function as the application. CI runs type checking, emulator tests, and the production build.
 
-To learn more about Next.js, take a look at the following resources:
+## Hosted configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Copy `.env.example` to `.env.local`, replace the web-app configuration with your Firebase project's values, and set `NEXT_PUBLIC_USE_EMULATORS=false`. Enable **Anonymous** and **Email/Password** sign-in. Deploy the reviewed Firestore rules with the Firebase CLI for your specific project.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### Existing data and rollout
 
-## Deploy on Vercel
+The UI still reads legacy thread message arrays, but only writes new individual message records. Old threads without an `ownerId` remain readable and accept new messages; title editing is disabled until an administrator explicitly assigns ownership. Existing public user records may contain email addresses: export a backup and remove those fields before deploying the new rules. Rules cannot retroactively remove fields from existing records. Deploy app and rules together after testing against a disposable project. This repository change does not deploy rules to a live Firebase project.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Limits and next steps
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details
+The active thread subscribes to its latest 100 new messages; older-message pagination is future work. Legacy arrays remain fully visible until a separate data migration. The thread list is currently unpaginated. Shared guest chat needs abuse controls before a public production launch. New-message previews in the sidebar are not yet maintained; open a thread to read its current messages.

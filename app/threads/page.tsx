@@ -12,7 +12,7 @@ export default function Home() {
       <p>Click the button below to create a new thread</p>
       <button
         type="button"
-        onClick={() => dispatch({ type: "ADD_THREAD", threadId: Math.random().toString(36).slice(2) })}
+        onClick={() => void dispatch({ type: "ADD_THREAD", threadId: crypto.randomUUID() }).catch(() => {})}
         className="flex items-center justify-center gap-2 rounded-md bg-blue-500 px-3 py-1.5 font-medium text-white"
       >
         <PlusIcon />
